@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>You're invited to Playground League!</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #0f0f1e; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 0 auto; background: #1a1a2e; color: #fff; }
+    .header { background: linear-gradient(135deg, #6366f1, #8b5cf6); padding: 40px 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 28px; font-style: italic; text-transform: uppercase; }
+    .header .badge { display: inline-block; background: #a3e635; color: #000; padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 900; margin-bottom: 15px; }
+    .content { padding: 40px 30px; }
+    .content h2 { color: #a3e635; font-size: 22px; }
+    .content p { color: #c7d2fe; line-height: 1.6; font-size: 15px; }
+    .cta-button { display: inline-block; background: #a3e635; color: #000; padding: 16px 40px; text-decoration: none; border-radius: 12px; font-weight: 900; text-transform: uppercase; font-style: italic; margin: 25px 0; }
+    .link-box { background: #0f0f1e; border: 1px dashed #fff; padding: 15px; border-radius: 10px; word-break: break-all; font-family: monospace; color: #fff; font-size: 12px; }
+    .footer { background: #0f0f1e; padding: 25px; text-align: center; color: #64748b; font-size: 11px; }
+    a { color: #fff; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="badge">🏀 PLAYGROUND LEAGUE</div>
+      <h1>You've Got Game Invite!</h1>
+    </div>
+    <div class="content">
+      <h2>Hey there! 👋</h2>
+      <p><strong>{{referrerName}}</strong> thinks you've got what it takes to ball on Playground League — the ultimate athlete network for logging stats, sharing highlights, and getting scouted.</p>
+
+      <p>Click below to create your free athlete profile and auto-connect with {{referrerName}}:</p>
+
+      <div style="text-align: center;">
+        <a href="{{referralLink}}" class="cta-button">Join Playground League →</a>
+      </div>
+
+      <p style="font-size: 13px; color: #94a3b8;">Or copy this link into your browser:</p>
+      <div class="link-box"> <a href="{{referralLink}}" style="color:#fff;">{{referralLink}}</a> </div>
+
+      <p style="margin-top: 30px; font-size: 13px; color: #94a3b8;">
+        ⚡ <strong>Why join?</strong><br>
+        • Log verified game stats<br>
+        • Record 30s highlight reels<br>
+        • Get discovered by scouts<br>
+        • Compete with athletes near you
+      </p>
+    </div>
+    <div class="footer">
+      © {{year}} Playground League • <a href="https://playgroundleague.pro" style="color: #a3e635;">playgroundleague.pro</a><br>
+      You received this because {{referrerName}} invited you.
+    </div>
+  </div>
+</body>
+</html>

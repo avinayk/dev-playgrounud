@@ -1,0 +1,40 @@
+{
+  "name": "playgound",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/app.js",
+    "build": "tsc",
+    "dev": "nodemon --exec tsx src/app.ts",
+    "dev:direct": "tsx src/app.ts",
+    "stop-dev": "taskkill /F /IM node.exe"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "handlebars": "^4.7.9",
+    "jsonwebtoken": "^9.0.3",
+    "multer": "^2.3.0",
+    "mysql2": "^3.24.3",
+    "node-cron": "^4.6.0",
+    "nodemailer": "^10.0.1",
+    "socket.io": "^4.8.3",
+    "stripe": "^22.6.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/multer": "^2.2.0",
+    "@types/node": "^26.4.1",
+    "@types/node-cron": "^3.0.11",
+    "@types/socket.io": "^3.0.1",
+    "nodemon": "^3.1.14",
+    "ts-node": "^10.9.2",
+    "tsx": "^4.23.13",
+    "typescript": "^7.0.2"
+  }
+}

@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Playground League Game Invite</title>
+</head>
+
+<body
+    style="margin:0;padding:0;background:#0a0a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+    <!-- Outer Wrapper -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+        style="background:#0a0a1a;padding:24px 12px;">
+        <tr>
+            <td align="center">
+
+                <!-- Main Card -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                    style="max-width:600px;background:#11132a;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+
+                    <!-- Top Color Bar -->
+                    <tr>
+                        <td
+                            style="height:6px;background:linear-gradient(90deg,#a3e635 0%,#84cc16 25%,#facc15 50%,#f97316 75%,#ef4444 100%);">
+                        </td>
+                    </tr>
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding:36px 32px 24px;text-align:center;background:#11132a;">
+                            <div
+                                style="display:inline-block;padding:6px 16px;background:rgba(163,230,53,0.15);border:1px solid rgba(163,230,53,0.4);border-radius:999px;margin-bottom:18px;">
+                                <span
+                                    style="color:#a3e635;font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">
+                                    🏀 Playground League Pro
+                                </span>
+                            </div>
+                            <h1
+                                style="margin:0;color:#ffffff;font-size:26px;font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:-0.5px;line-height:1.1;">
+                                You're Invited to Play!
+                            </h1>
+                            <p
+                                style="margin:8px 0 0;color:#94a3b8;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">
+                                Official Pick-Up &amp; Tournament Network
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="height:1px;background:rgba(255,255,255,0.06);"></td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:32px;">
+
+                            <!-- Greeting -->
+                            <p style="margin:0 0 20px;color:#ffffff;font-size:16px;font-weight:700;">
+                                Hey <span style="color:#a3e635;">Athlete</span>,
+                            </p>
+
+                            <p style="margin:0 0 24px;color:#cbd5e1;font-size:14px;line-height:1.7;">
+                                <strong style="color:#ffffff;">{{hostName}}</strong> just invited you to join a pickup
+                                game on Playground League!
+                            </p>
+
+                            <!-- Game Details Card -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="background:#1a1d3a;border-radius:16px;border:1px solid rgba(163,230,53,0.2);margin-bottom:24px;">
+                                <tr>
+                                    <td style="padding:20px;">
+
+                                        <!-- Game Title -->
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td
+                                                    style="padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                                                    <span
+                                                        style="display:inline-block;padding:4px 10px;background:rgba(163,230,53,0.15);color:#a3e635;font-size:10px;font-weight:900;border-radius:6px;text-transform:uppercase;letter-spacing:1px;">
+                                                        {{sportEmoji}} {{sport}}
+                                                    </span>
+                                                    <h2
+                                                        style="margin:10px 0 0;color:#ffffff;font-size:20px;font-weight:900;font-style:italic;text-transform:uppercase;">
+                                                        {{gameTitle}}
+                                                    </h2>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Location -->
+                                            <tr>
+                                                <td style="padding-top:14px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">📍</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                {{location}}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Date & Time -->
+                                            <tr>
+                                                <td style="padding-top:10px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">🕐</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                {{date}} • {{time}}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Roster -->
+                                            <tr>
+                                                <td style="padding-top:10px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">👥</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                {{currentPlayers}}/{{maxPlayers}} spots filled •
+                                                                {{spotsLeft}} left
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                    </td>
+                                </tr>
+                    </tr>
+                </table>
+
+                <!-- CTA Info -->
+                <p style="margin:0 0 20px;color:#cbd5e1;font-size:14px;line-height:1.7;">
+                    Tap the button below to confirm your spot. If you're not on Playground League yet, the link will
+                    guide you to sign up and <strong style="color:#a3e635;">auto-join this game</strong>.
+                </p>
+
+                <!-- CTA Button -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                    <tr>
+                        <td align="center" style="padding:8px 0 24px;">
+                            <a href="{{registrationLink}}"
+                                style="display:inline-block;padding:18px 40px;background:#a3e635;color:#0a0a1a;font-size:15px;font-weight:900;text-decoration:none;border-radius:14px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 8px 24px rgba(163,230,53,0.3);">
+                                🏀 Join Game Now
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+
+                <!-- Link Fallback -->
+                <p style="margin:0 0 24px;color:#64748b;font-size:11px;line-height:1.6;text-align:center;">
+                    Or copy this link: <br />
+                    <a href="{{registrationLink}}" style="color:#a3e635;text-decoration:none;word-break:break-all;">
+                        {{registrationLink}}
+                    </a>
+                </p>
+
+                <!-- Alert Box -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                    style="background:rgba(163,230,53,0.08);border:1px dashed rgba(163,230,53,0.3);border-radius:12px;">
+                    <tr>
+                        <td style="padding:16px;">
+                            <p
+                                style="margin:0;color:#a3e635;font-size:12px;font-weight:700;line-height:1.6;text-align:center;">
+                                ⚡ Limited spots available — first come, first served!
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+
+            </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+            <td style="padding:24px 32px;background:#0d0f1f;border-top:1px solid rgba(255,255,255,0.06);">
+                <p style="margin:0 0 8px;color:#64748b;font-size:11px;text-align:center;font-weight:600;">
+                    Sent with ❤️ by <strong style="color:#a3e635;">Playground League</strong>
+                </p>
+                <p style="margin:0;color:#475569;font-size:10px;text-align:center;">
+                    <a href="{{unsubscribeLink}}" style="color:#64748b;text-decoration:underline;">
+                        Unsubscribe
+                    </a>
+                    &nbsp;•&nbsp;
+                    <a href="https://playgroundleague.pro" style="color:#64748b;text-decoration:underline;">
+                        playgroundleague.pro
+                    </a>
+                </p>
+            </td>
+        </tr>
+
+    </table>
+
+    </td>
+    </tr>
+    </table>
+
+</body>
+
+</html>

@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Email Verification</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background-color: #0f0f1a;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #1a1a2e;
+      border-radius: 24px;
+      padding: 40px;
+      color: #ffffff;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid #fbbf24;
+      padding-bottom: 20px;
+      margin-bottom: 30px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 900;
+      text-transform: uppercase;
+      letter-spacing: -0.5px;
+      color: #fbbf24;
+      margin: 0;
+    }
+    .header p {
+      color: #9ca3af;
+      margin: 5px 0 0;
+      font-size: 14px;
+    }
+    .code-box {
+      background: #2d2d44;
+      border-radius: 16px;
+      padding: 25px;
+      text-align: center;
+      margin: 30px 0;
+      border: 2px solid #fbbf24;
+    }
+    .code {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 12px;
+      color: #fbbf24;
+      font-family: 'Courier New', monospace;
+    }
+    .code-label {
+      color: #9ca3af;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      padding-top: 20px;
+      border-top: 1px solid #3d3d5c;
+      font-size: 14px;
+      color: #9ca3af;
+    }
+    .footer a {
+      color: #fbbf24;
+      text-decoration: none;
+    }
+    .message {
+      color: #d1d5db;
+      line-height: 1.6;
+      font-size: 16px;
+    }
+    .expiry {
+      font-size: 13px;
+      color: #9ca3af;
+      text-align: center;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>🏀 Playground League</h1>
+      <p>Verify Your Email Address</p>
+    </div>
+
+    <h2 style="font-size: 22px; font-weight: 700; margin-bottom: 10px;">
+      Hello {{name}}!
+    </h2>
+
+    <p class="message">
+      Thank you for registering on Playground League. To complete your registration and start using all features, please verify your email address.
+    </p>
+
+    <div class="code-box">
+      <div class="code-label">Your 6-digit verification code:</div>
+      <div class="code">{{code}}</div>
+    </div>
+
+    <div class="expiry">
+      ⏰ This code will expire in <strong style="color: #fbbf24;">15 minutes</strong>
+    </div>
+
+    <p style="font-size: 14px; color: #9ca3af; margin-top: 25px; text-align: center;">
+      If you didn't request this, please ignore this email.
+    </p>
+
+    <div class="footer">
+      <p>
+        © {{year}} Playground League. All rights reserved.<br>
+        <a href="mailto:support@playgroundleague.pro">support@playgroundleague.pro</a>
+      </p>
+    </div>
+  </div>
+</body>
+</html>
