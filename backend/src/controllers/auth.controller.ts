@@ -522,7 +522,7 @@ export class AuthController {
       if (!emailSent) {
         res.status(500).json({
           success: false,
-          message: 'Failed to send verification email'
+          message: emailSent
         });
         return;
       }
@@ -539,7 +539,7 @@ export class AuthController {
       console.error('❌ Send verification email error:', error);
       res.status(500).json({
         success: false,
-        message: 'Failed to send verification email'
+        message: error
       });
     }
   }
@@ -751,7 +751,7 @@ export class AuthController {
       if (!emailSent) {
         res.status(500).json({
           success: false,
-          message: 'Failed to send verification email'
+          message: emailSent
         });
         return;
       }
