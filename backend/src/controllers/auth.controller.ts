@@ -8,7 +8,8 @@ import crypto from 'crypto';
 import pool from '../config/database';
 import { athleteService } from '../services/athlete.service';
 import { AuthRequest } from '../middleware/auth.middleware';
-
+import { StreakService } from '../services/streak.service';
+import { getIO } from '../socket/socketManager';
 export class AuthController {
   
   async register(req: Request, res: Response): Promise<void> {
@@ -186,7 +187,40 @@ export class AuthController {
         });
         return;
       }
- 
+      /* ═══════════════════════════════════════════════════
+       ⭐ AUTO DAILY CHECK-IN ON LOGIN ⭐
+       ═══════════════════════════════════════════════════ */
+    let checkInResult: any = null;
+
+    try {
+      
+      checkInResult = await StreakService.checkIn(athlete.id);
+
+      
+      
+      if (!checkInResult.alreadyCheckedIn && checkInResult.xpAwarded > 0) {
+        try {
+          const io = getIO();
+          io.to(`user:${athlete.id}`).emit('notification:new', {
+            id: `notif_checkin_${Date.now()}`,
+            user_id: athlete.id,
+            type: 'achievement',
+            title: '🔥 Daily Check-in Complete!',
+            message: `You earned +${checkInResult.xpAwarded} XP! Streak: ${checkInResult.newStreak} day${
+              checkInResult.newStreak > 1 ? 's' : ''
+            }.`,
+            status: 'info',
+            is_read: 0,
+            created_at: new Date().toISOString(),
+          });
+          console.log('📡 [login] Check-in notification emitted');
+        } catch (socketErr) {
+          console.warn('⚠️ Socket emit failed:', socketErr);
+        }
+      }
+    } catch (checkInErr) {
+      
+    }
 
       // Generate JWT token
       const token = jwt.sign(
@@ -577,6 +611,34 @@ export class AuthController {
         [record.athlete_id]
       );
 
+      let checkInResult: any = null;
+
+    try {
+      checkInResult = await StreakService.checkIn(record.athlete_id);
+
+      if (!checkInResult.alreadyCheckedIn && checkInResult.xpAwarded > 0) {
+        try {
+          const io = getIO();
+          io.to(`user:${record.athlete_id}`).emit('notification:new', {
+            id: `notif_checkin_${Date.now()}`,
+            user_id: record.athlete_id,
+            type: 'achievement',  
+            title: '🔥 Daily Check-in Complete!',
+            message: `You earned +${checkInResult.xpAwarded} XP! Streak: ${checkInResult.newStreak} day${
+              checkInResult.newStreak > 1 ? 's' : ''
+            }.`,
+            status: 'info',
+            is_read: 0,
+            created_at: new Date().toISOString(),
+          });
+          console.log('📡 [verify-email] Check-in notification emitted');
+        } catch (socketErr) {
+          console.warn('⚠️ Socket emit failed:', socketErr);
+        }
+      }
+    } catch (checkInErr) {
+      console.error('⚠️ [verify-email] Auto check-in failed (non-blocking):', checkInErr);
+    }
       // Get updated athlete data
       const [athletes]: any = await pool.query(
         `SELECT id, name, email, userhandle, profilepicture, role, 

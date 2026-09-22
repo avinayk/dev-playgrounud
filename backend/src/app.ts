@@ -39,6 +39,10 @@ import seasonGoalsRoutes from './routes/seasonGoals.routes';
 import tournamentsRoutes from './routes/tournaments.routes';
 import courtsRoutes from './routes/courts.routes';
 import stripeRoutes from './routes/stripe.routes';
+
+import referralRoutes from './routes/referral.routes';
+
+
 dotenv.config();
  
 
@@ -83,6 +87,7 @@ app.use('/api/season-goals', seasonGoalsRoutes);
 app.use('/api/tournaments', tournamentsRoutes);
 app.use('/api/courts', courtsRoutes);
 app.use('/api/stripe', stripeRoutes);
+app.use('/api', referralRoutes);
 /* ─── HTTP server ─── */
 const server = http.createServer(app);
 

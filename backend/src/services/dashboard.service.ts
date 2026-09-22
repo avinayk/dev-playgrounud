@@ -1,7 +1,8 @@
 // backend/src/services/dashboard.service.ts
 import pool from '../config/database';
 import { RowDataPacket } from 'mysql2';
-
+import { NotificationService } from './notification.service';
+import { getIO } from '../socket/socketManager';
 /* ═══════════════════════════════════════════
    HELPER: Get today's date from MySQL server
    (avoids UTC vs local timezone mismatch)
@@ -136,7 +137,31 @@ export class DashboardService {
     );
 
     const longestStreak = updated[0]?.longest_streak || newStreak;
+    try {
+      const notification = await NotificationService.create({
+        userId: athleteId,
+        type: 'achievement',
+        title: '🔥 Daily Check-in Complete!',
+        message: `You earned +${xpEarned} XP! Streak: ${newStreak} day${
+          newStreak > 1 ? 's' : ''
+        }.`,
+        referenceId: `checkin_${today}`,
+        actionUrl: '/dashboard',
+        status: 'info',
+      });
 
+      // ⭐ Also emit via socket for instant badge update
+      try {
+        const io = getIO();
+        io.to(`user:${athleteId}`).emit('notification:new', notification);
+        console.log('📡 [checkin] Socket emitted notification to:', athleteId);
+      } catch (socketErr) {
+        console.warn('⚠️ Socket emit failed:', socketErr);
+      }
+    } catch (notifErr) {
+      console.error('⚠️ Notification create failed (non-critical):', notifErr);
+      // Don't fail the check-in if notification fails
+    }
     console.log('   ✅ Check-in complete: +', xpEarned, 'XP, streak:', newStreak);
 
     return {
