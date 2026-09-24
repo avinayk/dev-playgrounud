@@ -150,29 +150,42 @@ export const verifySession = async (req: Request, res: Response) => {
   try {
     const { sessionId } = req.params;
     const session = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ['subscription', 'customer'],
+      expand: ['subscription', 'customer', 'line_items'],
     });
 
     if (session.payment_status === 'paid' || session.status === 'complete') {
-      const athleteId =
-        session.metadata?.athleteId ||
-        (session.customer as Stripe.Customer)?.metadata?.athleteId;
+      const customerId = (session.customer as Stripe.Customer)?.id || null;
+      const subscriptionId = (session.subscription as Stripe.Subscription)?.id || null;
+
+      // ✅ Multiple fallbacks
+      let athleteId: string | null = session.metadata?.athleteId || null;
+
+      if (!athleteId && customerId) {
+        const [rows] = await pool.query<any[]>(
+          `SELECT id FROM athletes WHERE stripe_customer_id = ? LIMIT 1`,
+          [customerId]
+        );
+        if (rows.length > 0) athleteId = rows[0].id;
+      }
 
       if (athleteId) {
-        const subscription = session.subscription as Stripe.Subscription | null;
-        const customer = session.customer as Stripe.Customer | null;
+        const amountTotal = (session.amount_total || 0) / 100;
+        const currency = session.currency || 'usd';
 
         await pool.query(
           `UPDATE athletes SET
              is_pro = 1, is_verified_pro = 1, subscription_tier = 'pro',
              payment_receipt_id = ?, payment_method = ?, payment_date = NOW(),
+             payment_amount = ?, payment_currency = ?,
              stripe_customer_id = ?, stripe_subscription_id = ?
            WHERE id = ?`,
           [
             session.id,
             session.payment_method_types?.[0] || 'card',
-            customer?.id || null,
-            subscription?.id || null,
+            amountTotal,
+            currency,
+            customerId,
+            subscriptionId,
             athleteId,
           ]
         );
@@ -265,32 +278,39 @@ export const getSubscriptionStatus = async (req: Request, res: Response) => {
 export const cancelSubscription = async (req: Request, res: Response) => {
   try {
     const { athleteId } = req.body;
-    if (!athleteId) return res.status(400).json({ success: false, message: 'athleteId required' });
+    if (!athleteId)
+      return res.status(400).json({ success: false, message: 'athleteId required' });
 
     const [rows] = await pool.query<any[]>(
-      'SELECT stripe_subscription_id FROM athletes WHERE id = ?',
+      'SELECT stripe_subscription_id, stripe_customer_id FROM athletes WHERE id = ?',
       [athleteId]
     );
-    if (!rows.length) return res.status(404).json({ success: false, message: 'Athlete not found' });
+    if (!rows.length)
+      return res.status(404).json({ success: false, message: 'Athlete not found' });
 
     const subId = rows[0].stripe_subscription_id;
+
     if (subId) {
       try {
-        await stripe.subscriptions.cancel(subId);
-      } catch (e) {
-        console.warn('Stripe cancel warning:', e);
+        // ✅ Cancel at period end (safer) — or immediate:
+        // await stripe.subscriptions.cancel(subId);
+        await stripe.subscriptions.update(subId, { cancel_at_period_end: true });
+      } catch (e: any) {
+        console.warn('Stripe cancel warning:', e.message);
       }
     }
 
+    // ⚠️ Keep stripe_customer_id — DO NOT null it
     await pool.query(
       `UPDATE athletes SET
-         is_pro = 0, is_verified_pro = 0, subscription_tier = 'free',
-         stripe_subscription_id = NULL
+         is_pro = 0,
+         is_verified_pro = 0,
+         subscription_tier = 'free'
        WHERE id = ?`,
       [athleteId]
     );
 
-    res.json({ success: true });
+    res.json({ success: true, message: 'Subscription cancelled' });
   } catch (err: any) {
     console.error('❌ cancelSubscription:', err);
     res.status(500).json({ success: false, message: err.message });
@@ -316,37 +336,194 @@ export const stripeWebhook = async (req: Request, res: Response) => {
   }
 
   try {
+    /* ═══════════════════════════════════════════
+       CHECKOUT SESSION COMPLETED
+       (User just subscribed / re-subscribed)
+       ═══════════════════════════════════════════ */
     if (event.type === 'checkout.session.completed') {
       const session = event.data.object as Stripe.Checkout.Session;
-      const athleteId = session.metadata?.athleteId;
-      if (athleteId) {
+
+      const amountTotal = (session.amount_total || 0) / 100;
+      const currency = session.currency || 'usd';
+      const customerId = (session.customer as string) || null;
+      const subscriptionId = (session.subscription as string) || null;
+
+      /* ─── Resolve Athlete ID with MULTIPLE fallbacks ─── */
+      let athleteId: string | null = session.metadata?.athleteId || null;
+
+      // Fallback 1: Look up by stripe_customer_id
+      if (!athleteId && customerId) {
+        const [rows] = await pool.query<any[]>(
+          `SELECT id FROM athletes WHERE stripe_customer_id = ? LIMIT 1`,
+          [customerId]
+        );
+        if (rows.length > 0) athleteId = rows[0].id;
+      }
+
+      // Fallback 2: Look up by customer email
+      if (!athleteId && customerId) {
+        try {
+          const customer = await stripe.customers.retrieve(customerId);
+          if (!('deleted' in customer) && customer.email) {
+            const [rows] = await pool.query<any[]>(
+              `SELECT id FROM athletes WHERE email = ? LIMIT 1`,
+              [customer.email.toLowerCase()]
+            );
+            if (rows.length > 0) athleteId = rows[0].id;
+          }
+        } catch (e) {
+          console.warn('Could not retrieve customer for athlete lookup:', e);
+        }
+      }
+
+      console.log('📩 Webhook checkout.session.completed:', {
+        sessionId: session.id,
+        athleteId,
+        customerId,
+        subscriptionId,
+        amountTotal,
+        currency,
+      });
+
+      if (!athleteId) {
+        console.error('❌ Could not resolve athlete for session:', session.id);
+        return res.json({ received: true, warning: 'athlete_not_resolved' });
+      }
+
+      /* ─── Update athlete to PRO ─── */
+      const [updateResult] = await pool.query<any>(
+        `UPDATE athletes SET
+           is_pro = 1,
+           is_verified_pro = 1,
+           subscription_tier = 'pro',
+           payment_receipt_id = ?,
+           payment_method = ?,
+           payment_amount = ?,
+           payment_currency = ?,
+           payment_date = NOW(),
+           stripe_customer_id = ?,
+           stripe_subscription_id = ?
+         WHERE id = ?`,
+        [
+          session.id,
+          session.payment_method_types?.[0] || 'card',
+          amountTotal,
+          currency,
+          customerId,
+          subscriptionId,
+          athleteId,
+        ]
+      );
+
+      console.log(
+        `✅ Athlete ${athleteId} upgraded to PRO (rows affected: ${updateResult.affectedRows})`
+      );
+    }
+
+    /* ═══════════════════════════════════════════
+       SUBSCRIPTION UPDATED
+       (Handles price changes, renewals, etc.)
+       ═══════════════════════════════════════════ */
+    if (event.type === 'customer.subscription.updated') {
+      const sub = event.data.object as Stripe.Subscription;
+      const customerId = sub.customer as string;
+      const subscriptionId = sub.id;
+      const status = sub.status;
+
+      console.log('📩 Webhook customer.subscription.updated:', {
+        subscriptionId,
+        customerId,
+        status,
+      });
+
+      // Resolve athlete
+      let athleteId: string | null = sub.metadata?.athleteId || null;
+
+      if (!athleteId && customerId) {
+        const [rows] = await pool.query<any[]>(
+          `SELECT id FROM athletes WHERE stripe_customer_id = ? LIMIT 1`,
+          [customerId]
+        );
+        if (rows.length > 0) athleteId = rows[0].id;
+      }
+
+      if (!athleteId) return res.json({ received: true });
+
+      // If subscription is active/trialing → mark PRO
+      if (status === 'active' || status === 'trialing') {
         await pool.query(
           `UPDATE athletes SET
-             is_pro = 1, is_verified_pro = 1, subscription_tier = 'pro',
-             payment_receipt_id = ?, payment_date = NOW(),
-             stripe_customer_id = ?, stripe_subscription_id = ?
+             is_pro = 1,
+             is_verified_pro = 1,
+             subscription_tier = 'pro',
+             stripe_subscription_id = ?
            WHERE id = ?`,
-          [
-            session.id,
-            (session.customer as string) || null,
-            (session.subscription as string) || null,
-            athleteId,
-          ]
+          [subscriptionId, athleteId]
         );
+        console.log(`✅ Athlete ${athleteId} reactivated to PRO`);
       }
     }
 
+    /* ═══════════════════════════════════════════
+       SUBSCRIPTION DELETED / CANCELLED
+       ═══════════════════════════════════════════ */
     if (event.type === 'customer.subscription.deleted') {
       const sub = event.data.object as Stripe.Subscription;
-      const athleteId = sub.metadata?.athleteId;
-      if (athleteId) {
-        await pool.query(
-          `UPDATE athletes SET
-             is_pro = 0, is_verified_pro = 0, subscription_tier = 'free',
-             stripe_subscription_id = NULL
-           WHERE id = ?`,
-          [athleteId]
+      const customerId = sub.customer as string;
+      const subscriptionId = sub.id;
+
+      console.log('📩 Webhook customer.subscription.deleted:', {
+        subscriptionId,
+        customerId,
+      });
+
+      // Resolve athlete (metadata first, then customer)
+      let athleteId: string | null = sub.metadata?.athleteId || null;
+
+      if (!athleteId && customerId) {
+        const [rows] = await pool.query<any[]>(
+          `SELECT id FROM athletes WHERE stripe_customer_id = ? LIMIT 1`,
+          [customerId]
         );
+        if (rows.length > 0) athleteId = rows[0].id;
+      }
+
+      if (!athleteId) return res.json({ received: true });
+
+      // ⚠️ DO NOT null out stripe_customer_id — we may need it later
+      await pool.query(
+        `UPDATE athletes SET
+           is_pro = 0,
+           is_verified_pro = 0,
+           subscription_tier = 'free',
+           stripe_subscription_id = NULL
+         WHERE id = ?`,
+        [athleteId]
+      );
+
+      console.log(`✅ Athlete ${athleteId} downgraded to FREE`);
+    }
+
+    /* ═══════════════════════════════════════════
+       INVOICE PAYMENT FAILED
+       ═══════════════════════════════════════════ */
+    if (event.type === 'invoice.payment_failed') {
+      const invoice = event.data.object as Stripe.Invoice;
+      const customerId = invoice.customer as string;
+
+      let athleteId: string | null = invoice.metadata?.athleteId || null;
+
+      if (!athleteId && customerId) {
+        const [rows] = await pool.query<any[]>(
+          `SELECT id FROM athletes WHERE stripe_customer_id = ? LIMIT 1`,
+          [customerId]
+        );
+        if (rows.length > 0) athleteId = rows[0].id;
+      }
+
+      if (athleteId) {
+        console.warn(`⚠️ Payment failed for athlete ${athleteId}`);
+        // Optional: mark as pending payment, send email, etc.
       }
     }
 

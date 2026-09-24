@@ -1,4 +1,5 @@
 // src/services/friendship.service.ts
+import { randomUUID } from 'crypto';
 import pool from '../config/database';
 import type {
   FriendshipRow,
@@ -40,6 +41,31 @@ export class FriendshipService {
           `UPDATE friendships SET status = 'accepted' WHERE id = ?`,
           [row.id]
         );
+
+        // ✅ Update original notification → accepted
+        await pool.execute(
+          `UPDATE notifications
+           SET status = 'accepted', is_read = 1, updated_at = NOW()
+           WHERE user_id = ? AND sender_id = ? AND type = 'friend_request'`,
+          [userId, friendId]
+        );
+
+        // ✅ Notify original sender
+        const [meRows] = await pool.execute<any[]>(
+          `SELECT name FROM athletes WHERE id = ?`,
+          [userId]
+        );
+        const myName = meRows[0]?.name ?? 'Someone';
+
+        await this.createNotification(
+          friendId,
+          'achievement',
+          `🎉 ${myName} accepted your friend request!`,
+          `You are now friends with ${myName}.`,
+          userId,
+          'info'
+        );
+
         const updated = await this.getById(row.id);
         if (!updated) throw new Error('Update failed');
         return updated;
@@ -60,6 +86,23 @@ export class FriendshipService {
     await pool.execute(
       `INSERT INTO friendships (user_id, friend_id, status) VALUES (?, ?, 'pending')`,
       [userId, friendId]
+    );
+
+    // ✅ Fetch sender name for notification
+    const [senderRows] = await pool.execute<any[]>(
+      `SELECT name FROM athletes WHERE id = ?`,
+      [userId]
+    );
+    const senderName = senderRows[0]?.name ?? 'Someone';
+
+    // ✅ Insert notification for receiver
+    await this.createNotification(
+      friendId,
+      'friend_request',
+      `🤝 ${senderName} sent you a friend request`,
+      `${senderName} wants to connect with you on Playground League.`,
+      userId,
+      'pending'
     );
 
     const [rows] = await pool.execute<FriendshipRow[]>(
@@ -95,6 +138,30 @@ export class FriendshipService {
     if (result.affectedRows === 0) {
       throw new Error('No pending request found');
     }
+
+    // ✅ Update original notification → accepted
+    await pool.execute(
+      `UPDATE notifications
+       SET status = 'accepted', is_read = 1, updated_at = NOW()
+       WHERE user_id = ? AND sender_id = ? AND type = 'friend_request'`,
+      [userId, friendId]
+    );
+
+    // ✅ Notify original sender
+    const [meRows] = await pool.execute<any[]>(
+      `SELECT name FROM athletes WHERE id = ?`,
+      [userId]
+    );
+    const myName = meRows[0]?.name ?? 'Someone';
+
+    await this.createNotification(
+      friendId,
+      'achievement',
+      `🎉 ${myName} accepted your friend request!`,
+      `You are now friends with ${myName}.`,
+      userId,
+      'info'
+    );
   }
 
   /* ─── Reject / cancel request ─── */
@@ -106,6 +173,15 @@ export class FriendshipService {
       `DELETE FROM friendships
        WHERE ((user_id = ? AND friend_id = ?) OR (user_id = ? AND friend_id = ?))
          AND status = 'pending'`,
+      [userId, friendId, friendId, userId]
+    );
+
+    // ✅ Mark original notification as declined
+    await pool.execute(
+      `UPDATE notifications
+       SET status = 'declined', is_read = 1, updated_at = NOW()
+       WHERE type = 'friend_request'
+         AND ((user_id = ? AND sender_id = ?) OR (user_id = ? AND sender_id = ?))`,
       [userId, friendId, friendId, userId]
     );
   }
@@ -232,6 +308,29 @@ export class FriendshipService {
     );
     if (!rows[0]) return null;
     return this.mapRow(rows[0]);
+  }
+
+  /* ─── Insert notification helper ─── */
+  private static async createNotification(
+    userId: string,
+    type: 'friend_request' | 'game_invite' | 'chat_mention' | 'achievement' | 'badge' | 'system',
+    title: string,
+    message: string,
+    senderId: string | null,
+    status: 'pending' | 'accepted' | 'declined' | 'info'
+  ): Promise<void> {
+    try {
+      await pool.execute(
+        `INSERT INTO notifications
+          (id, user_id, type, title, message, sender_id, status, is_read)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 0)`,
+        [randomUUID(), userId, type, title, message, senderId, status]
+      );
+      console.log('✅ [Notification] Inserted for user:', userId);
+    } catch (err) {
+      console.error('❌ [Notification] Insert failed:', err);
+      // Non-blocking — friend request should still succeed
+    }
   }
 
   /* ─── Map row to DTO ─── */

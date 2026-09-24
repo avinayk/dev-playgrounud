@@ -216,7 +216,7 @@ params.push(limit, offset);
     }
   ): Promise<FeedPostDTO> {
     const id = randomUUID();
-
+    
     await pool.execute(
       `INSERT INTO feed_posts
         (id, author_id, type, title, description, badge_name, badge_tier,
@@ -284,6 +284,9 @@ params.push(limit, offset);
     /* ─── 1️⃣ Broadcast to all feed viewers ─── */
     try {
       const io = getIO();
+      // ✅ YE ADD KARO
+  
+      
       if (io) {
         io.to('feed:global').emit('feed:new_post', {
           post: postDTO,
@@ -399,12 +402,17 @@ params.push(limit, offset);
               [athleteId]
             );
             const likerName = likerRows[0]?.name ?? 'Someone';
-
+            const preview = (post.description || post.title || '').trim();
+            const shortPreview =
+              preview.length > 60 ? `${preview.slice(0, 60)}…` : preview;
+            const msg = shortPreview
+      ? `${likerName} liked your post: "${shortPreview}"`
+      : `${likerName} liked your post`;
             const notif = await NotificationService.create({
               userId: post.author_id,
               type: 'chat_mention',
               title: 'New Hype on Your Post',
-              message: `${likerName} hyped your post: "${post.title}"`,
+              message: msg,
               senderId: athleteId,
               referenceId: postId,
               actionUrl: `/social-feed?post=${postId}`,
@@ -489,11 +497,15 @@ params.push(limit, offset);
           );
           const commenterName = commenterRows[0]?.name ?? 'Someone';
 
+          const commentText = text.trim();
+          const shortComment =
+            commentText.length > 80 ? `${commentText.slice(0, 80)}…` : commentText;
+          const msg = `${commenterName} commented on your post: "${shortComment}"`;
           const notif = await NotificationService.create({
             userId: post.author_id,
             type: 'chat_mention',
             title: 'New Comment on Your Post',
-            message: `${commenterName} commented: "${text.slice(0, 80)}"`,
+            message: msg,
             senderId: authorId,
             referenceId: postId,
             actionUrl: `/social-feed?post=${postId}`,

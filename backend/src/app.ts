@@ -39,8 +39,9 @@ import seasonGoalsRoutes from './routes/seasonGoals.routes';
 import tournamentsRoutes from './routes/tournaments.routes';
 import courtsRoutes from './routes/courts.routes';
 import stripeRoutes from './routes/stripe.routes';
-
 import referralRoutes from './routes/referral.routes';
+
+import adminRoutes from './routes/admin/admin.routes';
 
 
 dotenv.config();
@@ -88,6 +89,7 @@ app.use('/api/tournaments', tournamentsRoutes);
 app.use('/api/courts', courtsRoutes);
 app.use('/api/stripe', stripeRoutes);
 app.use('/api', referralRoutes);
+app.use('/api', adminRoutes);
 /* ─── HTTP server ─── */
 const server = http.createServer(app);
 
@@ -133,6 +135,11 @@ const io = new SocketIOServer(server, {
 /* ✅ Store globally so services can access it */
 setIO(io);
 
+/* ✅ ATTACH io TO req — CRITICAL for realtime notifications */
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  (req as any).io = io;
+  next();
+});
 /* ✅ Initialize chat + feed sockets */
 initChatSocket(io);
 initFeedSocket(io);
@@ -141,16 +148,16 @@ initWatchPartySocket(io);   // Socket.IO ke saath
 
 /* ─── Start server ─── */
 const PORT = Number(process.env.PORT) || 3001;
-// cron.schedule('*/2 * * * *', async () => {
-//   try {
-//     const result = await LeaderboardService.markStaleOffline();
-//     if (result.markedOffline > 0) {
-//       console.log(`[cron] Marked ${result.markedOffline} athletes Offline`);
-//     }
-//   } catch (err) {
-//     console.error('[cron] stale-offline failed:', err);
-//   }
-// });
+cron.schedule('*/2 * * * *', async () => {
+  try {
+    const result = await LeaderboardService.markStaleOffline();
+    if (result.markedOffline > 0) {
+      console.log(`[cron] Marked ${result.markedOffline} athletes Offline`);
+    }
+  } catch (err) {
+    console.error('[cron] stale-offline failed:', err);
+  }
+});
 server.listen(PORT, () => {
   console.log(`🚀 Server + Socket.io on http://localhost:${PORT}`);
 });

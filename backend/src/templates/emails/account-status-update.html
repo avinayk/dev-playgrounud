@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Account Status Update - Playground League</title>
+</head>
+
+<body
+    style="margin:0;padding:0;background:#0a0a1a;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;">
+
+    <!-- Outer Wrapper -->
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+        style="background:#0a0a1a;padding:24px 12px;">
+        <tr>
+            <td align="center">
+
+                <!-- Main Card -->
+                <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                    style="max-width:600px;background:#11132a;border-radius:24px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.6);">
+
+                    <!-- Top Color Bar (Dynamic based on status) -->
+                    <tr>
+                        <td style="height:6px;background:{{statusBarColor}};"></td>
+                    </tr>
+
+                    <!-- Header -->
+                    <tr>
+                        <td style="padding:36px 32px 24px;text-align:center;background:#11132a;">
+                            <div
+                                style="display:inline-block;padding:6px 16px;background:{{badgeBgColor}};border:1px solid {{badgeBorderColor}};border-radius:999px;margin-bottom:18px;">
+                                <span
+                                    style="color:{{badgeTextColor}};font-size:11px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;">
+                                    🏀 Playground League Pro
+                                </span>
+                            </div>
+                            <div style="font-size:52px;line-height:1;margin-bottom:14px;">{{statusEmoji}}</div>
+                            <h1
+                                style="margin:0;color:#ffffff;font-size:26px;font-weight:900;font-style:italic;text-transform:uppercase;letter-spacing:-0.5px;line-height:1.1;">
+                                {{statusTitle}}
+                            </h1>
+                            <p
+                                style="margin:8px 0 0;color:#94a3b8;font-size:12px;font-weight:600;letter-spacing:1px;text-transform:uppercase;">
+                                Account Status Notification
+                            </p>
+                        </td>
+                    </tr>
+
+                    <!-- Divider -->
+                    <tr>
+                        <td style="height:1px;background:rgba(255,255,255,0.06);"></td>
+                    </tr>
+
+                    <!-- Body -->
+                    <tr>
+                        <td style="padding:32px;">
+
+                            <!-- Greeting -->
+                            <p style="margin:0 0 20px;color:#ffffff;font-size:16px;font-weight:700;">
+                                Hey <span style="color:{{accentColor}};">{{athleteName}}</span>,
+                            </p>
+
+                            <!-- Intro Message -->
+                            <p style="margin:0 0 24px;color:#cbd5e1;font-size:14px;line-height:1.7;">
+                                {{{introMessage}}}
+                            </p>
+
+                            <!-- Status Card -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="background:#1a1d3a;border-radius:16px;border:1px solid {{badgeBorderColor}};margin-bottom:24px;">
+                                <tr>
+                                    <td style="padding:20px;">
+
+                                        <!-- Status Label -->
+                                        <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                            <tr>
+                                                <td
+                                                    style="padding-bottom:14px;border-bottom:1px solid rgba(255,255,255,0.06);">
+                                                    <span
+                                                        style="display:inline-block;padding:4px 10px;background:{{badgeBgColor}};color:{{badgeTextColor}};font-size:10px;font-weight:900;border-radius:6px;text-transform:uppercase;letter-spacing:1px;">
+                                                        ACCOUNT STATUS
+                                                    </span>
+                                                    <h2
+                                                        style="margin:10px 0 0;color:{{badgeTextColor}};font-size:20px;font-weight:900;font-style:italic;text-transform:uppercase;">
+                                                        {{statusLabel}}
+                                                    </h2>
+                                                </td>
+                                            </tr>
+
+                                            <!-- User Info -->
+                                            <tr>
+                                                <td style="padding-top:14px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0"
+                                                        width="100%">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">👤</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                <strong style="color:#ffffff;">Handle:</strong>
+                                                                {{userHandle}}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                            <!-- Reason (if provided) -->
+                                            {{#if reason}}
+                                            <tr>
+                                                <td style="padding-top:10px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0"
+                                                        width="100%">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">📝</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                <strong style="color:#ffffff;">Reason:</strong>
+                                                                {{reason}}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            {{/if}}
+
+                                            <!-- Timestamp -->
+                                            <tr>
+                                                <td style="padding-top:10px;">
+                                                    <table role="presentation" cellpadding="0" cellspacing="0"
+                                                        width="100%">
+                                                        <tr>
+                                                            <td style="width:24px;vertical-align:top;padding-top:2px;">
+                                                                <span style="font-size:16px;">🕐</span>
+                                                            </td>
+                                                            <td style="color:#cbd5e1;font-size:13px;font-weight:600;">
+                                                                <strong style="color:#ffffff;">Updated:</strong>
+                                                                {{updatedAt}}
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <!-- Details / Next Steps -->
+                            <p style="margin:0 0 20px;color:#cbd5e1;font-size:14px;line-height:1.7;">
+                                {{{detailsMessage}}}
+                            </p>
+
+                            <!-- CTA Button (conditional) -->
+                            {{#if ctaLink}}
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="padding:8px 0 24px;">
+                                        <a href="{{ctaLink}}"
+                                            style="display:inline-block;padding:18px 40px;background:{{accentColor}};color:#0a0a1a;font-size:15px;font-weight:900;text-decoration:none;border-radius:14px;text-transform:uppercase;letter-spacing:1px;box-shadow:0 8px 24px {{badgeBorderColor}};">
+                                            {{ctaText}}
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                            {{/if}}
+
+                            <!-- Alert Box -->
+                            <table role="presentation" width="100%" cellpadding="0" cellspacing="0"
+                                style="background:{{badgeBgColor}};border:1px dashed {{badgeBorderColor}};border-radius:12px;">
+                                <tr>
+                                    <td style="padding:16px;">
+                                        <p
+                                            style="margin:0;color:{{badgeTextColor}};font-size:12px;font-weight:700;line-height:1.6;text-align:center;">
+                                            {{{alertMessage}}}
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding:24px 32px;background:#0d0f1f;border-top:1px solid rgba(255,255,255,0.06);">
+                            <p style="margin:0 0 8px;color:#64748b;font-size:11px;text-align:center;font-weight:600;">
+                                Sent with ❤️ by <strong style="color:#a3e635;">Playground League</strong>
+                            </p>
+                            <p style="margin:0;color:#475569;font-size:10px;text-align:center;">
+                                <a href="https://playgroundleague.pro" style="color:#64748b;text-decoration:underline;">
+                                    playgroundleague.pro
+                                </a>
+                                &nbsp;•&nbsp;
+                                <a href="mailto:support@playgroundleague.pro"
+                                    style="color:#64748b;text-decoration:underline;">
+                                    Contact Support
+                                </a>
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+
+            </td>
+        </tr>
+    </table>
+
+</body>
+
+</html>
