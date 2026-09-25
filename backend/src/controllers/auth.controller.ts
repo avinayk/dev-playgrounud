@@ -156,7 +156,7 @@ export class AuthController {
     }
   }
 
-  async login(req: Request, res: Response): Promise<void> {
+ async login(req: Request, res: Response): Promise<void> {
   try {
     const { email, password } = req.body;
 
@@ -278,7 +278,48 @@ export class AuthController {
         }
       }
     } catch (checkInErr) {
-      // Non-blocking
+      // Non-blocking — login should still succeed
+      console.warn('⚠️ Streak check-in failed (non-critical):', checkInErr);
+    }
+
+    /* ═══════════════════════════════════════════
+       5.5 ✅ UPDATE LAST SEEN + ONLINE STATUS (NEW)
+       ═══════════════════════════════════════════ */
+    try {
+      await pool.execute(
+        `UPDATE athletes 
+         SET last_seen_at = NOW(), 
+             user_status = 'Online',
+             status_updated_at = NOW()
+         WHERE id = ?`,
+        [athlete.id]
+      );
+      console.log(
+        `✅ [login] Updated last_seen_at + user_status for ${athlete.id}`
+      );
+
+      // ✅ Real-time broadcast to all connected sockets
+      try {
+        const io = getIO();
+        if (io) {
+          // Broadcast online status
+          io.emit('user:online', { athleteId: athlete.id, online: true });
+
+          // Broadcast presence update (Leaderboard + Local Legends)
+          io.emit('presence:update', {
+            athleteId: athlete.id,
+            status: 'Online',
+            timestamp: new Date().toISOString(),
+          });
+
+          console.log(`📡 [login] Broadcast presence for ${athlete.id}`);
+        }
+      } catch (socketErr) {
+        console.warn('⚠️ Socket emit failed:', socketErr);
+      }
+    } catch (updateErr) {
+      console.error('❌ [login] Failed to update last_seen_at:', updateErr);
+      // Non-blocking — login should still succeed
     }
 
     /* ═══════════════════════════════════════════
@@ -506,19 +547,84 @@ export class AuthController {
   }
 
   async logout(req: Request, res: Response): Promise<void> {
-    try {
-      res.status(200).json({
-        success: true,
-        message: 'Logged out successfully'
-      });
-    } catch (error) {
-      console.error('❌ Logout error:', error);
-      res.status(500).json({
-        success: false,
-        message: (error as Error).message || 'Logout failed'
-      });
+  try {
+    const { athleteId } = req.body;
+
+    console.log('═══════════════════════════════════════════');
+    console.log('🔴 [logout] CALLED');
+    console.log('   req.body:', JSON.stringify(req.body));
+    console.log('   athleteId:', athleteId);
+    console.log('   type:', typeof athleteId);
+    console.log('═══════════════════════════════════════════');
+
+    /* ═══════════════════════════════════════════
+       1. UPDATE STATUS TO OFFLINE
+       ═══════════════════════════════════════════ */
+    if (athleteId) {
+      try {
+        const [result] = await pool.execute<any>(
+          `UPDATE athletes 
+           SET user_status = 'Offline',
+               last_seen_at = NOW(),
+               status_updated_at = NOW()
+           WHERE id = ?`,
+          [athleteId]
+        );
+
+        console.log('✅ [logout] UPDATE result:', result);
+        console.log('   affectedRows:', result.affectedRows);
+        console.log('   changedRows:', result.changedRows);
+
+        if (result.affectedRows === 0) {
+          console.warn('⚠️ [logout] No rows updated — athleteId not found in DB');
+        }
+
+        // ✅ Verify — SELECT karke confirm karo
+        const [verify] = await pool.execute<any[]>(
+          `SELECT id, name, user_status, last_seen_at, status_updated_at 
+           FROM athletes WHERE id = ?`,
+          [athleteId]
+        );
+        console.log('🔍 [logout] VERIFY SELECT:', verify);
+
+        // ✅ Real-time broadcast
+        try {
+          const io = getIO();
+          if (io) {
+            io.emit('user:online', { athleteId, online: false });
+            io.emit('presence:update', {
+              athleteId,
+              status: 'Offline',
+              timestamp: new Date().toISOString(),
+            });
+            console.log(`📡 [logout] Broadcast Offline presence for ${athleteId}`);
+          } else {
+            console.warn('⚠️ [logout] getIO() returned null');
+          }
+        } catch (socketErr) {
+          console.warn('⚠️ [logout] Socket emit failed:', socketErr);
+        }
+      } catch (updateErr) {
+        console.error('❌ [logout] UPDATE FAILED:', updateErr);
+        console.error('   Error message:', (updateErr as Error).message);
+        console.error('   Error stack:', (updateErr as Error).stack);
+      }
+    } else {
+      console.warn('⚠️ [logout] athleteId missing in req.body');
     }
+
+    res.status(200).json({
+      success: true,
+      message: 'Logged out successfully',
+    });
+  } catch (error) {
+    console.error('❌ Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: (error as Error).message || 'Logout failed',
+    });
   }
+}
 
   async oauthLogin(req: Request, res: Response): Promise<void> {
     res.status(501).json({
