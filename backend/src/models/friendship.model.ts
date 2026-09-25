@@ -30,6 +30,9 @@ export interface FriendshipDTO {
   friendHandle: string | null;
   friendPosition: string | null;
   friendSport: string | null;
+  isOnline?: boolean;        // ✅ ADD KARO
+  userStatus?: string;       // ✅ ADD KARO
+  lastSeenAt?: string | null; 
 }
 
 export interface FriendStatus {

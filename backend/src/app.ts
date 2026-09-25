@@ -124,8 +124,14 @@ app.use((err: Error, req: Request, res: Response, next: any) => {
    SOCKET.IO
    ═══════════════════════════════════════════ */
 const io = new SocketIOServer(server, {
+  path: '/dev/socket.io',   // ✅ YE LINE WAPAS ADD KARO
   cors: {
-    origin: ['http://localhost:5173', 'http://localhost:3000','http://localhost:5173/dev', 'http://localhost:3000/dev','https://www.playgroundleague.pro/dev/api','https://www.playgroundleague.pro/dev'],
+    origin: [
+      'http://localhost:5173',
+      'http://localhost:3000',
+      'https://www.playgroundleague.pro',
+      'https://www.playgroundleague.pro/dev',
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
   },

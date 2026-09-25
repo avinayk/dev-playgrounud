@@ -237,7 +237,9 @@ export class FriendshipService {
               a.profilepicture AS friend_avatar,
               a.userhandle AS friend_handle,
               a.position AS friend_position,
-              a.primary_sport AS friend_sport
+              a.primary_sport AS friend_sport,
+              a.user_status AS friend_status,        -- ✅ ADD KIYA
+            a.last_seen_at AS friend_last_seen 
        FROM friendships f
        JOIN athletes a ON a.id = 
          CASE 
@@ -341,7 +343,9 @@ export class FriendshipService {
     const isSentByMe = perspectiveUserId
       ? row.user_id === perspectiveUserId
       : false;
-
+    // ✅ status ko boolean me convert karo
+    const status = (row as any).friend_status || 'Offline';
+    const isOnline = status === 'Online' || status === 'In-Game';
     return {
       id: row.id,
       userId: row.user_id,
@@ -353,6 +357,9 @@ export class FriendshipService {
       friendHandle: row.friend_handle ?? null,
       friendPosition: row.friend_position ?? null,
       friendSport: row.friend_sport ?? null,
+      isOnline,                                    // ✅ ADD KIYA
+      userStatus: status,                          // ✅ ADD KIYA (raw value)
+      lastSeenAt: (row as any).friend_last_seen ?? null,  // ✅ ADD KIYA
     };
   }
 }
